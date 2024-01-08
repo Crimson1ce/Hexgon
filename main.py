@@ -7,19 +7,22 @@ import threading
 # constants
 PLOT_ORIGINAL = False
 FILEPATH = "lena.png"
-IS_RGB = True
 VERBOSE = True
 
 
 def main():
+  global PLOT_ORIGINAL, FILEPATH, VERBOSE
+
+
+  IS_RGB = False
   # read the color image
   if VERBOSE: print(f"Reading file '{FILEPATH}'")
   try:
     img = np.asarray(Image.open(FILEPATH))
+    IS_RGB = len(img.shape) > 2
   except FileNotFoundError:
       print(f"File '{FILEPATH}' not found.")
-
-  # gimg = np.asarray(Image.open('bear.jpg'))
+      exit()
 
   # convert to grayscale
   gimg = hx.to_grayscale(img) if IS_RGB else img
@@ -32,7 +35,6 @@ def main():
   th.start()
 
   # global boolean to determine if original image is plotted
-  global PLOT_ORIGINAL
   if PLOT_ORIGINAL == True:
     plot = plt.imshow(gimg)
     plot.set_cmap('gray')
