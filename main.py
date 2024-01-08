@@ -4,6 +4,57 @@ import hexgon as hx
 import numpy  as np
 import threading
 
+# constants
+PLOT_ORIGINAL = False
+FILEPATH = "lena.png"
+IS_RGB = True
+VERBOSE = True
+
+
+def main():
+  # read the color image
+  if VERBOSE: print(f"Reading file '{FILEPATH}'")
+  try:
+    img = np.asarray(Image.open(FILEPATH))
+  except FileNotFoundError:
+      print(f"File '{FILEPATH}' not found.")
+
+  # gimg = np.asarray(Image.open('bear.jpg'))
+
+  # convert to grayscale
+  gimg = hx.to_grayscale(img) if IS_RGB else img
+
+
+  # decided to calculate hex image in a separate thread in case the original 
+  # image is displayed.
+  result = [None]
+  th = threading.Thread(target=convert_to_hexagonal, args=(gimg, result))
+  th.start()
+
+  # global boolean to determine if original image is plotted
+  global PLOT_ORIGINAL
+  if PLOT_ORIGINAL == True:
+    plot = plt.imshow(gimg)
+    plot.set_cmap('gray')
+    ax = plt.gca()
+    ax.axis("off")
+    ax.set_title("Original image")
+    plt.show()
+
+  if VERBOSE: print("Coverting to hexagonal lattice...")
+
+  th.join()
+
+  himg = result[0]
+
+  # convert to a hexagonal image
+  #himg = hx.to_hex(gimg)
+
+  if VERBOSE: print("Done converting.")
+  if VERBOSE: print("Displaying hexagonal image.")
+
+  hx.display_hex_image(himg)
+
 
 def convert_to_hexagonal(image, array: list):
   """
@@ -15,43 +66,5 @@ def convert_to_hexagonal(image, array: list):
   array[0] = hx.to_hex(image)
 
   
-
-def main():
-  # read the color image
-  print("Reading image...")
-  img = np.asarray(Image.open('lena.png'))
-
-  # gimg = np.asarray(Image.open('bear.jpg'))
-
-  # convert to grayscale
-  gimg = hx.to_grayscale(img)
-
-  result = [None]
-  th = threading.Thread(target=convert_to_hexagonal, args=(gimg, result))
-  th.start()
-
-  plot_original = False
-  if plot_original == True:
-    plot = plt.imshow(gimg)
-    plot.set_cmap('gray')
-    ax = plt.gca()
-    ax.axis("off")
-    ax.set_title("Original image")
-    plt.show()
-
-  print("Coverting to hexagonal lattice...")
-
-  th.join()
-
-  himg = result[0]
-
-  # convert to a hexagonal image
-  #himg = hx.to_hex(gimg)
-
-  print("Done converting")
-
-  hx.display_hex_image(himg)
-
-
 if __name__ == "__main__":
     main()
