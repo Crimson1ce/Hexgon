@@ -11,6 +11,7 @@ shows an incorrect value for the upper bound of delta x for the given case(s). T
 of an incorrect value of q when deriving the upper bound ($\dfrac{1}{\sqrt{3}}$ instead of $\dfrac{1}{2\sqrt{3}}$).
 
 ## How to use
+
 Run 
 ```
 python main.py
@@ -18,5 +19,10 @@ python main.py
 
 Currently, the image path is hardcoded in main.py, but I hope to change in near future.
 Additionally, the required marker size might change depending on the image resolution and
-aspect ratio. In the future I will try to implement an automatic marker size detection, 
+aspect ratio. In the future, I will try to implement an automatic marker size detection, 
 but for now the marker size needs to be manually changed for every image.
+
+## Notes
+
+Currently, the conversion to hexagonal image only works with grayscale images. A method for converting
+an RGB image to grayscale is provided. In the future, I will add support for RGB images.
