@@ -1,18 +1,20 @@
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from matplotlib import pyplot as plt
 import hexgon as hx
 import numpy  as np
 import threading
+import sys
 
 # constants
 PLOT_ORIGINAL = True
-FILEPATH = "lena.png"
+# FILEPATH = "lena.png"
 VERBOSE = True
 
 
 def main():
-  global PLOT_ORIGINAL, FILEPATH, VERBOSE
+  global PLOT_ORIGINAL, VERBOSE
 
+  FILEPATH = sys.argv[1]
 
   IS_RGB = False
   # read the color image
@@ -22,6 +24,9 @@ def main():
     IS_RGB = len(img.shape) > 2
   except FileNotFoundError:
       print(f"File '{FILEPATH}' not found.")
+      exit()
+  except UnidentifiedImageError:
+      print(f"Filetype not supported.")
       exit()
 
   # convert to grayscale
