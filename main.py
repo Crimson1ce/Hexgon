@@ -5,7 +5,7 @@ import numpy  as np
 import threading
 
 # constants
-PLOT_ORIGINAL = False
+PLOT_ORIGINAL = True
 FILEPATH = "lena.png"
 VERBOSE = True
 
