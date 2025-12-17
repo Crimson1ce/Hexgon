@@ -173,8 +173,9 @@ def display_hex_image(heximg):
 
 
     global _marker_size
-    # _marker_size = 0.68 = 512 , if it changes to 1280, make it smaller
-    _marker_size = 0.272
+    # _marker_size = 0.68 = constant / 512 , if it changes to 1280, it becomes smaller
+    # constant seems to be about 348.16
+    _marker_size = 348.16 / max(M, N)
     for intensity, coords in enumerate(levels):
         x_coords, y_coords = coords
 
