@@ -21,4 +21,8 @@ FILEPATH should be the path to an image file.
 
 ## Notes
 - Currently, the conversion to hexagonal image only works with grayscale images. A method for converting an RGB image to grayscale is provided. In the future, I will add support for RGB images.
-- In the future, I will try to implement an automatic marker size detection, but for now the marker size needs to be manually changed for every image. Additionally, the required marker size might change depending on the image resolution and aspect ratio.
+- In the future, I will try to implement an automatic marker size detection, but for now the marker size needs to be manually changed for every image (```_marker_size``` in ```hexgon.py```). Additionally, the required marker size might change depending on the image resolution and aspect ratio.
+
+## Issues
+- If the figure size in ```hexgon.py``` is not compatible with the image dimensions (that is, if the image dimensions are not multiples of the figure size), the code crashes whenever the scroll wheel is used to zoom in or out.
+- Zooming in with the "Zoom to rectangle" tool changes the marker size to keep it consistent. Using the scroll wheel to zoom in or out, on the other hand, does not adjust the marker size and leads to them being too big and making the image blurry or too small and leaving visible gaps between the hexagonal pixels.
