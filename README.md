@@ -25,4 +25,4 @@ FILEPATH should be the path to an image file.
 
 ## Issues
 - If the figure size in ```hexgon.py``` is not compatible with the image dimensions (that is, if the image dimensions are not multiples of the figure size), the code crashes whenever the scroll wheel is used to zoom in or out.
-- Zooming in with the "Zoom to rectangle" tool changes the marker size to keep it consistent. Using the scroll wheel to zoom in or out, on the other hand, does not adjust the marker size and leads to them being too big and making the image blurry or too small and leaving visible gaps between the hexagonal pixels.
+- Zooming in with the "Zoom to rectangle" tool changes the marker size with respect to the maximum change factor between the old and new height/width. Using the scroll wheel to zoom in, on the other hand, keeps marker size consistent, since the aspect ratio of the plot remains the same.
