@@ -6,13 +6,13 @@ import threading
 import sys
 
 # constants
-PLOT_ORIGINAL = True
+SHOW_ORIGINAL = True
 # FILEPATH = "lena.png"
 VERBOSE = True
 
 
 def main():
-  global PLOT_ORIGINAL, VERBOSE
+  global SHOW_ORIGINAL, VERBOSE
 
   FILEPATH = sys.argv[1]
 
@@ -33,29 +33,30 @@ def main():
   gimg = hx.to_grayscale(img) if IS_RGB else img
 
 
-  # decided to calculate hex image in a separate thread in case the original 
+  # decided to calculate hex image in a
+  # separate thread while (and if) the original
   # image is displayed.
-  result = [None]
+  result = []
   th = threading.Thread(target=convert_to_hexagonal, args=(gimg, result))
   th.start()
 
   # global boolean to determine if original image is plotted
-  if PLOT_ORIGINAL == True:
+  if SHOW_ORIGINAL == True:
     plot = plt.imshow(gimg)
     plot.set_cmap('gray')
     ax = plt.gca()
     ax.axis("off")
     ax.set_title("Original image")
+    # plt.tight_layout()
     plt.show()
 
   if VERBOSE: print("Coverting to hexagonal lattice...")
 
+  # Wait for the thread to finish before we continue
   th.join()
 
+  # Retrieve the result
   himg = result[0]
-
-  # convert to a hexagonal image
-  #himg = hx.to_hex(gimg)
 
   if VERBOSE: print("Done converting.")
   if VERBOSE: print("Displaying hexagonal image.")
@@ -65,13 +66,17 @@ def main():
 
 def convert_to_hexagonal(image, array: list):
   """
-  Converts the given image to a hexagonal image and 
+  Converts the given image to a hexagonal image and
   stores the result in the first index of the given list
   """
+
+  # The reason the image is stored in an array instead of
+  # directly returned is because this method may be called
+  # by a separate thread
   if len(array) < 1:
     array.append(None)
   array[0] = hx.to_hex(image)
 
-  
+
 if __name__ == "__main__":
     main()

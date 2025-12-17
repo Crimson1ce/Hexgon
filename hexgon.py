@@ -1,3 +1,4 @@
+import math
 from matplotlib import pyplot as plt
 from PIL import Image
 import numpy as np
@@ -12,10 +13,10 @@ _marker_size = 0.68
 # horizontal boundaries for horizontal displacement in ascending order
 _bounds = [
     0,
-   -0.5 + np.divide(  1, np.sqrt(3)),
-    0.5 - np.divide(0.5, np.sqrt(3)),
-    0.5 + np.divide(0.5, np.sqrt(3)),
-    0.5 + np.divide(  1, np.sqrt(3))
+   -0.5 + np.divide(  1, _sqrt3),
+    0.5 - np.divide(0.5, _sqrt3),
+    0.5 + np.divide(0.5, _sqrt3),
+    0.5 + np.divide(  1, _sqrt3)
 ]
 
 
@@ -31,12 +32,14 @@ ylim = dict()
 lines = dict()
 line_sizes = dict()
 
+# Hardcoded for now, maybe can try to set them based on input image
 fig_width, fig_height = 6, 6
 fig, ax = None, None
 
-
 def on_resize(event):
     global fig_factor
+
+    assert fig is not None, "'fig' was not initialized"
 
     w = fig.get_figwidth()
     h = fig.get_figheight()
@@ -56,14 +59,14 @@ def lim_change(ax):
     )
 
     try:
-        for line,size in zip(lines[ax],line_sizes[ax]):
+        for line, size in zip(lines[ax],line_sizes[ax]):
             line.set_markersize(size*factor*fig_factor)
     except KeyError:
         pass
 
 
 #########################  end of adapted code 1  #########################
-    
+
 
 ######################### start of adapted code 2 #########################
 
@@ -81,6 +84,10 @@ def zoom_factory(ax,base_scale = 2.):
         cur_yrange = (cur_ylim[1] - cur_ylim[0])*.5
         xdata = event.xdata # get event x location
         ydata = event.ydata # get event y location
+
+        if xdata is None or ydata is None:
+            return
+
         if event.button == 'up':
             # deal with zoom in
             scale_factor = 1/base_scale
@@ -95,7 +102,7 @@ def zoom_factory(ax,base_scale = 2.):
 
         # fix issue with home button not working
         ax.figure.canvas.toolbar.push_current()
-        
+
         # set new limits
         """
         ax.set_xlim([xdata - cur_xrange*scale_factor,
@@ -104,10 +111,10 @@ def zoom_factory(ax,base_scale = 2.):
                      ydata + cur_yrange*scale_factor])
         """
         #"""
-        
-        ax.set_xlim([xdata - (xdata-cur_xlim[0]) * scale_factor,   # / scale_factor, 
+
+        ax.set_xlim([xdata - (xdata-cur_xlim[0]) * scale_factor,   # / scale_factor,
                      xdata + (cur_xlim[1]-xdata) * scale_factor])  # / scale_factor])
-        ax.set_ylim([ydata - (ydata-cur_ylim[0]) * scale_factor,   # / scale_factor, 
+        ax.set_ylim([ydata - (ydata-cur_ylim[0]) * scale_factor,   # / scale_factor,
                      ydata + (cur_ylim[1]-ydata) * scale_factor])  # / scale_factor])
         #"""
 
@@ -137,7 +144,7 @@ def display_hex_image(heximg):
     levels = [[list(), list()] for _ in range(256)]
 
     # add every pixel in the image
-    
+
     # first horizontal position (for 1-based i and j)
     x_start = 0.5 + _inv_sqrt3
 
@@ -151,11 +158,11 @@ def display_hex_image(heximg):
             levels[heximg[i-1, j-1]][1].append(-(i if j & 1 == 1 else i + 0.5)) # formulas (54) and (55)
 
             x += _half_sqrt3 # horizontal step between each hexagon
-    
 
-    global fig_width, fig_height, fig, ax
-    
-    fig = plt.figure(figsize=(fig_height, fig_width))
+
+    global fig, ax
+
+    fig = plt.figure(figsize=(6, 6), constrained_layout=False)
     gs  = fig.add_gridspec(1)
     ax = gs.subplots()
 
@@ -166,25 +173,34 @@ def display_hex_image(heximg):
 
 
     global _marker_size
+    # _marker_size = 0.68 = 512 , if it changes to 1280, make it smaller
+    _marker_size = 0.272
     for intensity, coords in enumerate(levels):
         x_coords, y_coords = coords
 
         # if intensity == 12: break
 
+        # assign a hexadecimal string
+        # to each pixel intensity
+        # the hex string format is 0xHEXA,
+        # where HEXA is 2 characters (up to 255)
+        # so we multiply it by 3 to get an equally
+        # distributed 6-digit hexadecimal value
         c = "#" + (hex(intensity)[2:].zfill(2) * 3)
 
         if len(x_coords) == len(y_coords) and len(x_coords) > 0:
-            ret_lines.extend(ax.plot(x_coords, y_coords, marker='H', ms=_marker_size, mec=c, mfc=c, ls=""))
+            ret_lines.extend(ax.plot(x_coords, y_coords, marker='H', ms=_marker_size, mec=c, mfc=c, ls="")) # type: ignore
     lines[ax] = ret_lines
-    xlim[ax] = ax.get_xlim()
-    ylim[ax] = ax.get_ylim()
+    xlim[ax] = ax.get_xlim()    # type: ignore
+    ylim[ax] = ax.get_ylim()    # type: ignore
     line_sizes[ax] = [line.get_markersize() for line in lines[ax]]
 
 
     # resize markers when zooming in and out
     fig.canvas.mpl_connect('resize_event', on_resize)
-    ax.callbacks.connect('xlim_changed', lim_change)
-    ax.callbacks.connect('ylim_changed', lim_change)
+    ax.callbacks.connect('xlim_changed', lim_change) # type: ignore
+    ax.callbacks.connect('ylim_changed', lim_change) # type: ignore
+    ax.axis("off")  # type: ignore
 
     # maintain aspect ratio when zooming in
     plt.gca().set_aspect('equal')
@@ -194,6 +210,7 @@ def display_hex_image(heximg):
     scale = 2
     zoomfac = zoom_factory(ax, base_scale = scale)
 
+    # plt.tight_layout()
     plt.show()
 
 
@@ -216,7 +233,7 @@ def _get_overlapping_area(displacement):
     """
     dx, dy = displacement
     A = 0
-    
+
     # if greater than largest boundary, return 0
     if dx > _bounds[4]:
         return 0
@@ -252,17 +269,19 @@ def _get_overlapping_area(displacement):
 def to_hex(squimg):
     """
     Converts an image squimg from a rectangular to hexagonal lattice.
-    The resulting image is returned in the form of a matrix (numpy 
+    The resulting image is returned in the form of a matrix (numpy
     multidimensional array). Every other column has one less pixel in
-    it, so the last element from every odd column is 0 but should be 
+    it, so the last element from every odd column is 0 but should be
     ignored (first column is the 0th, so it will be even).
 
-    At the moment, the function is only implemented for grayscale 
+    At the moment, the function is only implemented for grayscale
     images.
     """
 
     if len(squimg.shape) != 2:
         return None
+
+    global _sqrt3, _inv_sqrt3
 
     M, N = squimg.shape
     print(M, N)
@@ -274,14 +293,13 @@ def to_hex(squimg):
     for i in range(1, Mh + 1):
         for j in range(1, Nh + 1):
 
-            x_h, y_h = 0, 0
+            # calculate x_h and y_h using (54), y_h is integer
+            # (54) x_h, y_h = 0.5 + ((3 * j - 1) / (2 * _sqrt3)), i
+            # (55) x_h, y_h = 0.5 + ((3 * j - 1) / (2 * _sqrt3)), i + 0.5
 
-            if j % 2 == 1:
-                # calculate x_h and y_h using (54), y_h is integer
-                x_h, y_h = 0.5 + ((3 * j - 1) / (2 * np.sqrt(3))), i
-            else:
-                # calculate x_h and y_h using (55)
-                x_h, y_h = 0.5 + ((3 * j - 1) / (2 * np.sqrt(3))), i + 0.5
+            # x_h is identical in both cases, y_h is the only difference
+            x_h = 0.5 + ((((3 * j) - 1) >> 1) * _inv_sqrt3)
+            y_h = i # will add 0.5 later on if j is even
 
             delta_x_pk, delta_y_pk = 0, 0
 
@@ -289,9 +307,12 @@ def to_hex(squimg):
             squixels = []
 
             # calculate the coordinates of every pixel that might have an overlap
-            if y_h == i:
+            if j % 2 == 1: # it is faster to do the same check again # if y_h == i:
+
+                # y_h is an integer in this case
+
                 # at most three pixels overlap, use (56)
-                p2 = (int(round(x_h)), int(y_h))
+                p2 = (int(round(x_h)), y_h)
                 p1 = (p2[0] - 1, p2[1])
                 p3 = (p2[0] + 1, p2[1])
 
@@ -301,8 +322,9 @@ def to_hex(squimg):
                 squixels.append(p3)
 
             else:
+                y_h = y_h + 0.5
                 # at most six pixels overlap, use (58)
-                p2 = (int(round(x_h)), int(y_h - 0.5))
+                p2 = (int(round(x_h)), int(y_h - 0.5))  # closes integer to x_h
                 p1 = (p2[0] - 1, p2[1])
                 p3 = (p2[0] + 1, p2[1])
                 p4 = (p2[0] - 1, p2[1] + 1)
@@ -330,14 +352,11 @@ def to_hex(squimg):
 
             # Calculate intensity of hexagonal pixel (i,j) using (3).
             # set the value of the pixel in the matrix heximg
-            heximg[i-1][j-1] = np.round(sum(areas[k] 
-                                          * (squimg[squixels[k][1] - 1, squixels[k][0] - 1] 
+            heximg[i-1][j-1] = np.round(sum(areas[k]
+                                          * (squimg[squixels[k][1] - 1, squixels[k][0] - 1]
                                              if valid(squixels[k], M, N) else 0)  # do not take into account pixels that are out of range
                             for k in range(len(areas))))
         # end j
     # end i
-            
-    global fig_width, fig_height
-    fig_width = fig_height * (N / M)
-    
+
     return heximg
